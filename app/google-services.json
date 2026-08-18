@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "60716678482",
+    "firebase_url": "https://invernadero-monitor-app-default-rtdb.firebaseio.com",
+    "project_id": "invernadero-monitor-app",
+    "storage_bucket": "invernadero-monitor-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:60716678482:android:91cc416ab584ae70c08e8b",
+        "android_client_info": {
+          "package_name": "com.invernadero.monitor"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "60716678482-rfk4dka0asogsj2hnv1g40o80gu64gae.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.invernadero.monitor",
+            "certificate_hash": "272ac09be14eab4cd3af977efa37c5474fe9aa9a"
+          }
+        },
+        {
+          "client_id": "60716678482-ce681k6lud2ijqutuhfan9qufu851d4g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB9AO7zmbBeo4GiDtxM7tE8FIPzFAhqXgs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "60716678482-ce681k6lud2ijqutuhfan9qufu851d4g.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
