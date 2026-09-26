@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingHorizontal="20dp"
+    android:paddingVertical="14dp">
+
+    <TextView
+        android:id="@+id/tvItemValue"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        tools:text="24.5 °C" />
+
+    <TextView
+        android:id="@+id/tvItemTimestamp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#607D8B"
+        android:textSize="14sp"
+        tools:text="18/08/2026 10:32" />
+
+</LinearLayout>

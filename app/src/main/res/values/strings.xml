@@ -1,3 +1,42 @@
 <resources>
     <string name="app_name">Invernadero</string>
+
+    <!-- Notificaciones -->
+    <string name="notification_channel_name">Alertas de temperatura</string>
+    <string name="notification_channel_description">Notifica cuando la temperatura supera el umbral configurado</string>
+    <string name="notification_title">Temperatura alta</string>
+    <string name="notification_text">La temperatura actual es %1$.1f°C, supera el umbral de %2$.1f°C</string>
+
+    <!-- Login -->
+    <string name="login_title">Invernadero Monitor</string>
+    <string name="login_subtitle">Inicia sesión para monitorear y controlar tu invernadero</string>
+    <string name="btn_google_sign_in">Iniciar sesión con Google</string>
+    <string name="login_error">No se pudo iniciar sesión: %1$s</string>
+    <string name="login_error_generic">Error de autenticación</string>
+    <string name="login_error_unsupported_credential">Tipo de credencial no soportado</string>
+
+    <!-- Main -->
+    <string name="main_current_temp_label">Temperatura actual</string>
+    <string name="main_temp_placeholder">--.- °C</string>
+    <string name="main_temp_format">%1$.1f °C</string>
+    <string name="main_chart_title">Histórico reciente</string>
+    <string name="main_led_label">LED</string>
+    <string name="main_alert_ok">Temperatura dentro del rango normal</string>
+    <string name="main_alert_high">⚠ Temperatura por encima del umbral</string>
+    <string name="bt_status_connecting">Bluetooth: conectando con el HC-05…</string>
+    <string name="bt_status_connected">Bluetooth: conectado al HC-05</string>
+    <string name="bt_status_disconnected">Bluetooth: desconectado (toca para reintentar)</string>
+    <string name="bt_status_no_permission">Bluetooth: falta el permiso (toca para reintentar)</string>
+    <string name="bt_status_off">Bluetooth apagado: actívalo y toca para reintentar</string>
+    <string name="bt_status_not_paired">No hay un HC-05 emparejado: empareja el módulo en Ajustes y toca para reintentar</string>
+    <string name="bt_status_failed">No se pudo conectar al HC-05 (toca para reintentar)</string>
+    <string name="bt_status_lost">Se perdió la conexión con el HC-05 (toca para reintentar)</string>
+    <string name="bt_led_not_connected">Sin conexión Bluetooth: no se pudo enviar el comando al LED</string>
+    <string name="main_btn_history">Ver historial</string>
+    <string name="main_btn_logout">Cerrar sesión</string>
+
+    <!-- History -->
+    <string name="history_title">Historial de temperatura</string>
+    <string name="history_empty">Aún no hay lecturas registradas</string>
+    <string name="btn_back">Volver</string>
 </resources>

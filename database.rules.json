@@ -1,0 +1,34 @@
+{
+  "rules": {
+    "led": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".validate": "newData.isBoolean()"
+    },
+    "temperature": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "current": {
+        ".validate": "newData.isNumber()"
+      },
+      "history": {
+        "$timestamp": {
+          ".validate": "newData.hasChildren(['value', 'timestamp'])",
+          "value": {
+            ".validate": "newData.isNumber()"
+          },
+          "timestamp": {
+            ".validate": "newData.isNumber()"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      }
+    },
+    "$other": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}
