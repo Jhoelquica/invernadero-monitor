@@ -1,10 +1,10 @@
 /*
-  Invernadero Monitor - Arduino Uno + HC-05 + DHT11 + LED (PWM)
+  Invernadero Monitor - Arduino Uno + HC-05 + DHT22/DHT11 + LED (PWM)
 
   Conexiones:
     HC-05 TXD -> pin 10 (RX de SoftwareSerial)
     HC-05 RXD -> pin 11 (TX de SoftwareSerial) mediante divisor de tension 5V -> 3.3V
-    DHT11 DATA -> pin 2
+    DHT22/DHT11 DATA -> pin 2
     LED (con resistencia 220 ohm) -> pin 9 (PWM)
 
   Libreria requerida: "DHT sensor library" de Adafruit (y "Adafruit Unified Sensor").
@@ -17,6 +17,10 @@
       PONG                             respuesta a PING
     App -> Arduino:
       LED:1 | LED:0 | BRI:0-255 | AUTO:1 | AUTO:0 | SET:10-60 | PING
+      (no distingue mayusculas de minusculas)
+
+  Depuracion: todo lo enviado por Bluetooth se copia al Serial Monitor (USB, 9600),
+  y los comandos recibidos se muestran con el prefijo "RX:".
 */
 
 #include <SoftwareSerial.h>
@@ -31,8 +35,35 @@ const unsigned long SEND_INTERVAL_MS = 5000;
 const float HYSTERESIS_C = 1.0;
 const uint8_t LINE_BUFFER_SIZE = 32;
 
+// Modelo del sensor: DHT22 (AM2302, cuerpo blanco) o DHT11 (cuerpo azul).
+// Si se elige el modelo equivocado, las lecturas salen absurdas (ej. T:0.1,H:12).
+#define DHT_TYPE DHT22
+
+// Rango de especificacion del sensor: fuera de el, la lectura se considera invalida.
+#if DHT_TYPE == DHT11
+const float DHT_MIN_TEMP_C = 0.0;
+const float DHT_MAX_TEMP_C = 50.0;
+const float DHT_MIN_HUMIDITY = 20.0;
+const float DHT_MAX_HUMIDITY = 90.0;
+#else
+const float DHT_MIN_TEMP_C = -40.0;
+const float DHT_MAX_TEMP_C = 80.0;
+const float DHT_MIN_HUMIDITY = 0.0;
+const float DHT_MAX_HUMIDITY = 100.0;
+#endif
+
 SoftwareSerial bt(PIN_BT_RX, PIN_BT_TX);
-DHT dht(PIN_DHT, DHT11);
+DHT dht(PIN_DHT, DHT_TYPE);
+
+// Todo lo que se envia por Bluetooth se copia al USB (Serial Monitor, 9600) para depurar.
+class Tee : public Print {
+ public:
+  size_t write(uint8_t c) override {
+    Serial.write(c);
+    return bt.write(c);
+  }
+};
+Tee out;
 
 bool ledOn = false;
 bool autoMode = false;
@@ -51,25 +82,27 @@ void applyLed() {
 
 void sendState(bool includeReading, float temperature, float humidity) {
   if (includeReading) {
-    bt.print(F("T:"));
-    bt.print(temperature, 1);
-    bt.print(F(",H:"));
-    bt.print(humidity, 0);
-    bt.print(',');
+    out.print(F("T:"));
+    out.print(temperature, 1);
+    out.print(F(",H:"));
+    out.print(humidity, 0);
+    out.print(',');
   }
-  bt.print(F("L:"));
-  bt.print(ledOn ? 1 : 0);
-  bt.print(F(",M:"));
-  bt.print(autoMode ? 1 : 0);
-  bt.print(F(",B:"));
-  bt.print(brightness);
-  bt.print(F(",S:"));
-  bt.println(threshold);
+  out.print(F("L:"));
+  out.print(ledOn ? 1 : 0);
+  out.print(F(",M:"));
+  out.print(autoMode ? 1 : 0);
+  out.print(F(",B:"));
+  out.print(brightness);
+  out.print(F(",S:"));
+  out.println(threshold);
 }
 
 void handleCommand(const char* line) {
+  Serial.print(F("RX: "));
+  Serial.println(line);
   if (strcmp(line, "PING") == 0) {
-    bt.println(F("PONG"));
+    out.println(F("PONG"));
     return;
   }
   if (strncmp(line, "LED:", 4) == 0) {
@@ -102,7 +135,7 @@ void updateAuto() {
 
 void readSerial() {
   while (bt.available()) {
-    char c = (char)bt.read();
+    char c = (char)toupper(bt.read());
     if (c == '\n') {
       lineBuffer[lineLength] = '\0';
       if (lineLength > 0) handleCommand(lineBuffer);
@@ -120,6 +153,7 @@ void readSerial() {
 void setup() {
   pinMode(PIN_LED, OUTPUT);
   applyLed();
+  Serial.begin(9600);
   bt.begin(9600);
   dht.begin();
 }
@@ -132,8 +166,11 @@ void loop() {
     lastSend = now;
     float temperature = dht.readTemperature();
     float humidity = dht.readHumidity();
-    if (isnan(temperature) || isnan(humidity)) {
-      bt.println(F("E:DHT"));
+    bool valid = !isnan(temperature) && !isnan(humidity) &&
+                 temperature >= DHT_MIN_TEMP_C && temperature <= DHT_MAX_TEMP_C &&
+                 humidity >= DHT_MIN_HUMIDITY && humidity <= DHT_MAX_HUMIDITY;
+    if (!valid) {
+      out.println(F("E:DHT"));
     } else {
       lastTemperature = temperature;
       if (autoMode) updateAuto();
