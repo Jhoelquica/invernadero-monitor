@@ -3,6 +3,7 @@ package com.invernadero.monitor
 import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothSocket
 import android.content.Context
@@ -16,9 +17,9 @@ import java.io.OutputStream
 import java.util.UUID
 
 /**
- * Conexión Bluetooth clásica (SPP) con el HC-05.
- * Entrada: líneas de texto "T:24.50\n". Salida: un byte '1' (LED on) o '0' (LED off).
- * Todos los callbacks del Listener se entregan en el hilo principal.
+ * Conexión Bluetooth clásica (SPP) con el HC-05. El formato de los mensajes
+ * está definido en [ArduinoProtocol]. Todos los callbacks del Listener se
+ * entregan en el hilo principal.
  */
 @SuppressLint("MissingPermission")
 class BluetoothHelper(
@@ -32,7 +33,7 @@ class BluetoothHelper(
 
     interface Listener {
         fun onStateChanged(state: State, failure: Failure? = null)
-        fun onTemperature(value: Double)
+        fun onMessage(message: ArduinoProtocol.Message)
     }
 
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -81,13 +82,12 @@ class BluetoothHelper(
         state = State.DISCONNECTED
     }
 
-    fun sendLed(on: Boolean): Boolean = send(if (on) LED_ON else LED_OFF)
-
-    private fun send(byte: Int): Boolean {
+    /** Envía una línea de comando (se agrega el salto de línea). Devuelve false si no hay conexión. */
+    fun sendCommand(command: String): Boolean {
         val out = output ?: return false
         return try {
             synchronized(writeLock) {
-                out.write(byte)
+                out.write((command + "\n").toByteArray(Charsets.US_ASCII))
                 out.flush()
             }
             true
@@ -96,7 +96,7 @@ class BluetoothHelper(
         }
     }
 
-    private fun runConnection(device: android.bluetooth.BluetoothDevice) {
+    private fun runConnection(device: BluetoothDevice) {
         val newSocket = try {
             device.createRfcommSocketToServiceRecord(SPP_UUID).also { it.connect() }
         } catch (e: IOException) {
@@ -120,8 +120,8 @@ class BluetoothHelper(
                 while (newline >= 0) {
                     val line = pending.substring(0, newline)
                     pending.delete(0, newline + 1)
-                    parseTemperatureLine(line)?.let { value ->
-                        mainHandler.post { listener.onTemperature(value) }
+                    ArduinoProtocol.parseLine(line)?.let { message ->
+                        mainHandler.post { listener.onMessage(message) }
                     }
                     newline = pending.indexOf("\n")
                 }
@@ -153,19 +153,6 @@ class BluetoothHelper(
     companion object {
         val SPP_UUID: UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
         const val DEVICE_NAME_HINT = "HC-05"
-        const val LED_ON = '1'.code
-        const val LED_OFF = '0'.code
-        private const val MAX_LINE_LENGTH = 64
-        private const val MIN_VALID_CELSIUS = -40.0
-        private const val MAX_VALID_CELSIUS = 80.0
-
-        /** Devuelve la temperatura de una línea "T:24.50", o null si es inválida. */
-        fun parseTemperatureLine(line: String): Double? {
-            val trimmed = line.trim()
-            if (!trimmed.startsWith("T:")) return null
-            val value = trimmed.substring(2).toDoubleOrNull() ?: return null
-            if (value.isNaN() || value < MIN_VALID_CELSIUS || value > MAX_VALID_CELSIUS) return null
-            return value
-        }
+        private const val MAX_LINE_LENGTH = 128
     }
 }

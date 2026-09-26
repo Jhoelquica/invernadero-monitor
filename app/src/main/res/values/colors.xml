@@ -2,4 +2,35 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <color name="inv_primary">#15803D</color>
+    <color name="inv_on_primary">#FFFFFF</color>
+    <color name="inv_primary_container">#DCFCE7</color>
+    <color name="inv_on_primary_container">#14532D</color>
+    <color name="inv_secondary">#334155</color>
+    <color name="inv_on_secondary">#FFFFFF</color>
+    <color name="inv_secondary_container">#E2E8F0</color>
+    <color name="inv_on_secondary_container">#0F172A</color>
+    <color name="inv_background">#F1F5F9</color>
+    <color name="inv_surface">#F8FAFC</color>
+    <color name="inv_on_surface">#0F172A</color>
+    <color name="inv_surface_variant">#E2E8F0</color>
+    <color name="inv_on_surface_variant">#475569</color>
+    <color name="inv_outline">#CBD5E1</color>
+    <color name="inv_surface_container">#FFFFFF</color>
+    <color name="inv_surface_container_high">#F1F5F9</color>
+    <color name="inv_error">#DC2626</color>
+    <color name="inv_on_error">#FFFFFF</color>
+
+    <color name="status_ok">#15803D</color>
+    <color name="status_ok_container">#DCFCE7</color>
+    <color name="status_warn">#B45309</color>
+    <color name="status_warn_container">#FEF3C7</color>
+    <color name="status_bad">#B91C1C</color>
+    <color name="status_bad_container">#FEE2E2</color>
+    <color name="status_off">#64748B</color>
+    <color name="status_off_container">#E2E8F0</color>
+
+    <color name="login_gradient_start">#DCFCE7</color>
+    <color name="login_gradient_end">#F1F5F9</color>
 </resources>

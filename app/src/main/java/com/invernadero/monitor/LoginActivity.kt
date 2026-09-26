@@ -28,6 +28,7 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var credentialManager: CredentialManager
     private lateinit var progressBar: ProgressBar
+    private lateinit var signInButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,9 +44,8 @@ class LoginActivity : AppCompatActivity() {
         credentialManager = CredentialManager.create(this)
         progressBar = findViewById(R.id.progressBar)
 
-        findViewById<Button>(R.id.btnGoogleSignIn).setOnClickListener {
-            launchGoogleSignIn()
-        }
+        signInButton = findViewById(R.id.btnGoogleSignIn)
+        signInButton.setOnClickListener { launchGoogleSignIn() }
     }
 
     override fun onStart() {
@@ -65,7 +65,7 @@ class LoginActivity : AppCompatActivity() {
             .addCredentialOption(googleIdOption)
             .build()
 
-        progressBar.visibility = View.VISIBLE
+        setLoading(true)
 
         lifecycleScope.launch {
             try {
@@ -75,7 +75,7 @@ class LoginActivity : AppCompatActivity() {
                 )
                 handleSignIn(result.credential)
             } catch (e: GetCredentialException) {
-                progressBar.visibility = View.GONE
+                setLoading(false)
                 Log.e(TAG, "Error al obtener credencial", e)
                 Toast.makeText(
                     this@LoginActivity,
@@ -93,7 +93,7 @@ class LoginActivity : AppCompatActivity() {
             val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
             firebaseAuthWithGoogle(googleIdTokenCredential.idToken)
         } else {
-            progressBar.visibility = View.GONE
+            setLoading(false)
             Toast.makeText(this, getString(R.string.login_error_unsupported_credential), Toast.LENGTH_SHORT).show()
         }
     }
@@ -102,7 +102,7 @@ class LoginActivity : AppCompatActivity() {
         val firebaseCredential = GoogleAuthProvider.getCredential(idToken, null)
         auth.signInWithCredential(firebaseCredential)
             .addOnCompleteListener(this) { task ->
-                progressBar.visibility = View.GONE
+                setLoading(false)
                 if (task.isSuccessful) {
                     goToMain()
                 } else {
@@ -110,6 +110,11 @@ class LoginActivity : AppCompatActivity() {
                     Toast.makeText(this, getString(R.string.login_error_generic), Toast.LENGTH_SHORT).show()
                 }
             }
+    }
+
+    private fun setLoading(loading: Boolean) {
+        progressBar.visibility = if (loading) View.VISIBLE else View.INVISIBLE
+        signInButton.isEnabled = !loading
     }
 
     private fun goToMain() {

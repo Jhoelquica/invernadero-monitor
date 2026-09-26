@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="inv_primary">#22C55E</color>
+    <color name="inv_on_primary">#052E16</color>
+    <color name="inv_primary_container">#14532D</color>
+    <color name="inv_on_primary_container">#DCFCE7</color>
+    <color name="inv_secondary">#94A3B8</color>
+    <color name="inv_on_secondary">#0F172A</color>
+    <color name="inv_secondary_container">#334155</color>
+    <color name="inv_on_secondary_container">#F8FAFC</color>
+    <color name="inv_background">#0F172A</color>
+    <color name="inv_surface">#0F172A</color>
+    <color name="inv_on_surface">#F8FAFC</color>
+    <color name="inv_surface_variant">#272F42</color>
+    <color name="inv_on_surface_variant">#94A3B8</color>
+    <color name="inv_outline">#475569</color>
+    <color name="inv_surface_container">#1B2336</color>
+    <color name="inv_surface_container_high">#272F42</color>
+    <color name="inv_error">#F87171</color>
+    <color name="inv_on_error">#450A0A</color>
+
+    <color name="status_ok">#4ADE80</color>
+    <color name="status_ok_container">#14532D</color>
+    <color name="status_warn">#FBBF24</color>
+    <color name="status_warn_container">#451A03</color>
+    <color name="status_bad">#F87171</color>
+    <color name="status_bad_container">#450A0A</color>
+    <color name="status_off">#94A3B8</color>
+    <color name="status_off_container">#334155</color>
+
+    <color name="login_gradient_start">#14532D</color>
+    <color name="login_gradient_end">#0F172A</color>
+</resources>

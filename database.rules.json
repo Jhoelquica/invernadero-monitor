@@ -20,10 +20,20 @@
           "timestamp": {
             ".validate": "newData.isNumber()"
           },
+          "humidity": {
+            ".validate": "newData.isNumber()"
+          },
           "$other": {
             ".validate": false
           }
         }
+      }
+    },
+    "humidity": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "current": {
+        ".validate": "newData.isNumber()"
       }
     },
     "$other": {

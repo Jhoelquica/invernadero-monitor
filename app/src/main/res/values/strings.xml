@@ -9,34 +9,81 @@
 
     <!-- Login -->
     <string name="login_title">Invernadero Monitor</string>
-    <string name="login_subtitle">Inicia sesión para monitorear y controlar tu invernadero</string>
-    <string name="btn_google_sign_in">Iniciar sesión con Google</string>
+    <string name="login_subtitle">Monitorea y controla tu invernadero desde el celular</string>
+    <string name="login_feature_monitor">Temperatura y humedad en tiempo real</string>
+    <string name="login_feature_control">Control del LED por Bluetooth</string>
+    <string name="login_feature_history">Historial y alertas por umbral</string>
+    <string name="login_footer">Acceso seguro con tu cuenta de Google</string>
+    <string name="btn_google_sign_in">Continuar con Google</string>
     <string name="login_error">No se pudo iniciar sesión: %1$s</string>
     <string name="login_error_generic">Error de autenticación</string>
     <string name="login_error_unsupported_credential">Tipo de credencial no soportado</string>
 
+    <!-- Navegación -->
+    <string name="nav_home">Inicio</string>
+    <string name="nav_history">Historial</string>
+    <string name="nav_account">Cuenta</string>
+    <string name="account_dialog_title">Cuenta</string>
+    <string name="account_dialog_signed_in">Sesión iniciada como %1$s</string>
+    <string name="account_dialog_logout">Cerrar sesión</string>
+    <string name="account_dialog_cancel">Cancelar</string>
+
     <!-- Main -->
-    <string name="main_current_temp_label">Temperatura actual</string>
+    <string name="main_title">Invernadero</string>
+    <string name="main_greeting">Hola, %1$s</string>
+    <string name="main_greeting_generic">Bienvenido</string>
+    <string name="main_current_temp_label">Temperatura</string>
+    <string name="main_humidity_label">Humedad</string>
     <string name="main_temp_placeholder">--.- °C</string>
+    <string name="main_humidity_placeholder">-- %</string>
     <string name="main_temp_format">%1$.1f °C</string>
+    <string name="main_humidity_format">%1$.0f %%</string>
+    <string name="main_alert_ok">Rango normal</string>
+    <string name="main_alert_near">Cerca del umbral</string>
+    <string name="main_alert_high">Sobre el umbral</string>
+    <string name="main_alert_sensor_error">Sensor desconectado</string>
+    <string name="main_alert_none">Sin datos</string>
+    <string name="main_last_update">Actualizado %1$s</string>
+    <string name="main_last_saved">Último valor guardado en la nube</string>
+    <string name="main_last_none">Esperando lecturas…</string>
+
+    <string name="control_title">Control</string>
+    <string name="control_led">LED</string>
+    <string name="control_led_on">Encendido</string>
+    <string name="control_led_off">Apagado</string>
+    <string name="control_brightness">Brillo: %1$d%%</string>
+    <string name="control_auto">Modo automático</string>
+    <string name="control_auto_hint">El Arduino enciende el LED al superar el umbral</string>
+    <string name="control_threshold">Umbral: %1$d °C</string>
+
+    <string name="stats_title">Hoy</string>
+    <string name="stats_min">Mín</string>
+    <string name="stats_max">Máx</string>
+    <string name="stats_avg">Prom</string>
+    <string name="stats_none">Aún no hay lecturas de hoy</string>
+    <string name="stats_value">%1$.1f °C</string>
+
     <string name="main_chart_title">Histórico reciente</string>
-    <string name="main_led_label">LED</string>
-    <string name="main_alert_ok">Temperatura dentro del rango normal</string>
-    <string name="main_alert_high">⚠ Temperatura por encima del umbral</string>
-    <string name="bt_status_connecting">Bluetooth: conectando con el HC-05…</string>
-    <string name="bt_status_connected">Bluetooth: conectado al HC-05</string>
-    <string name="bt_status_disconnected">Bluetooth: desconectado (toca para reintentar)</string>
-    <string name="bt_status_no_permission">Bluetooth: falta el permiso (toca para reintentar)</string>
-    <string name="bt_status_off">Bluetooth apagado: actívalo y toca para reintentar</string>
-    <string name="bt_status_not_paired">No hay un HC-05 emparejado: empareja el módulo en Ajustes y toca para reintentar</string>
-    <string name="bt_status_failed">No se pudo conectar al HC-05 (toca para reintentar)</string>
-    <string name="bt_status_lost">Se perdió la conexión con el HC-05 (toca para reintentar)</string>
-    <string name="bt_led_not_connected">Sin conexión Bluetooth: no se pudo enviar el comando al LED</string>
-    <string name="main_btn_history">Ver historial</string>
-    <string name="main_btn_logout">Cerrar sesión</string>
+    <string name="main_chart_empty">Sin datos para graficar</string>
+
+    <!-- Bluetooth -->
+    <string name="bt_status_connecting">Conectando…</string>
+    <string name="bt_status_connected">HC-05 conectado</string>
+    <string name="bt_status_disconnected">Desconectado · tocar para reintentar</string>
+    <string name="bt_status_no_permission">Falta permiso · tocar para reintentar</string>
+    <string name="bt_status_off">Bluetooth apagado · tocar para reintentar</string>
+    <string name="bt_status_not_paired">Sin HC-05 emparejado · tocar para reintentar</string>
+    <string name="bt_status_failed">No se pudo conectar · tocar para reintentar</string>
+    <string name="bt_status_lost">Conexión perdida · tocar para reintentar</string>
+    <string name="bt_led_not_connected">Sin conexión Bluetooth: no se pudo enviar el comando</string>
+    <string name="bt_latency">Latencia %1$d ms</string>
+    <string name="bt_no_response">Sin respuesta del Arduino</string>
 
     <!-- History -->
-    <string name="history_title">Historial de temperatura</string>
+    <string name="history_title">Historial</string>
+    <string name="history_today">Hoy</string>
+    <string name="history_yesterday">Ayer</string>
     <string name="history_empty">Aún no hay lecturas registradas</string>
+    <string name="history_humidity">%1$.0f %% HR</string>
     <string name="btn_back">Volver</string>
 </resources>

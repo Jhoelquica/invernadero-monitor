@@ -7,5 +7,6 @@ package com.invernadero.monitor
  */
 data class SensorReading(
     val value: Double = 0.0,
-    val timestamp: Long = 0L
+    val timestamp: Long = 0L,
+    val humidity: Double? = null
 )
