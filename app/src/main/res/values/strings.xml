@@ -28,6 +28,7 @@
     <string name="login_forgot_password">¿Olvidaste tu contraseña?</string>
     <string name="login_reset_sent">Te enviamos un enlace a %1$s para restablecer tu contraseña</string>
     <string name="login_or_divider">o</string>
+    <string name="login_loading">Entrando a tu invernadero…</string>
     <string name="login_error_email_required">Ingresa tu correo</string>
     <string name="login_error_email_invalid">Ingresa un correo válido</string>
     <string name="login_error_password_required">Ingresa tu contraseña</string>

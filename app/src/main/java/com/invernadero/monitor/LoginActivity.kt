@@ -10,6 +10,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.credentials.Credential
@@ -21,7 +22,6 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.FirebaseNetworkException
@@ -38,7 +38,7 @@ class LoginActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
     private lateinit var credentialManager: CredentialManager
-    private lateinit var progressBar: LinearProgressIndicator
+    private lateinit var loadingOverlay: View
     private lateinit var googleSignInButton: Button
 
     private lateinit var tilEmail: TextInputLayout
@@ -52,7 +52,15 @@ class LoginActivity : AppCompatActivity() {
     private var isRegisterMode = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
+
+        auth = FirebaseAuth.getInstance()
+        if (auth.currentUser != null) {
+            goToMain()
+            return
+        }
+
         enableEdgeToEdge()
         setContentView(R.layout.activity_login)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.login_root)) { v, insets ->
@@ -61,7 +69,6 @@ class LoginActivity : AppCompatActivity() {
             insets
         }
 
-        auth = FirebaseAuth.getInstance()
         credentialManager = CredentialManager.create(this)
         bindViews()
 
@@ -81,7 +88,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun bindViews() {
-        progressBar = findViewById(R.id.progressBar)
+        loadingOverlay = findViewById(R.id.loadingOverlay)
         googleSignInButton = findViewById(R.id.btnGoogleSignIn)
         tilEmail = findViewById(R.id.tilEmail)
         tilPassword = findViewById(R.id.tilPassword)
@@ -246,7 +253,7 @@ class LoginActivity : AppCompatActivity() {
     // ---------- Comunes ----------
 
     private fun setLoading(loading: Boolean) {
-        progressBar.visibility = if (loading) View.VISIBLE else View.INVISIBLE
+        loadingOverlay.visibility = if (loading) View.VISIBLE else View.GONE
         googleSignInButton.isEnabled = !loading
         btnEmailAction.isEnabled = !loading
         tvToggleMode.isEnabled = !loading

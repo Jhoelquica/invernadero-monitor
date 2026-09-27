@@ -22,6 +22,12 @@
         <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.Inv.Medium</item>
     </style>
 
+    <style name="Theme.Invernadero.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/inv_primary_container</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.Invernadero</item>
+    </style>
+
     <style name="ShapeAppearance.Inv.Medium" parent="ShapeAppearance.Material3.MediumComponent">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">20dp</item>
