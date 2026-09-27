@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>Reporte JMeter Invernadero</title>
 <style>
   :root{
@@ -74,6 +75,13 @@
   .group-card ul{margin:0; padding-left:18px; font-size:13px; color:var(--text-muted); display:flex; flex-direction:column; gap:4px;}
   .group-card li b{color:var(--text); font-weight:600;}
   .inline-code{font-family:var(--mono); background:var(--surface-2); padding:1px 6px; border-radius:4px; font-size:12.5px;}
+
+  .glossary{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  @media (max-width:640px){ .glossary{grid-template-columns:1fr;} }
+  .gterm{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px 14px;}
+  .gterm dt{font-family:var(--mono); font-size:12.5px; font-weight:600; color:var(--accent); margin-bottom:3px;}
+  .gterm dd{margin:0; font-size:13px; color:var(--text-muted);}
+  .why{font-size:12.5px; color:var(--text-muted); display:block; margin-top:2px;}
 </style>
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -134,7 +142,17 @@
       </div>
     </div>
 
-    <p class="section-note" style="margin-bottom:0">Ser <b>parametrizable</b> significa que el mismo archivo sirve para correr una prueba rápida con 1 usuario o una carga real con 50, sin editar nada — solo cambia el comando con el que se ejecuta. El archivo se llama <span class="inline-code">firebase_security_performance.jmx</span> y queda versionado en el repositorio del proyecto, así cualquiera puede volver a correrlo para confirmar que las reglas de seguridad siguen funcionando.</p>
+    <p class="section-note">Ser <b>parametrizable</b> significa que el mismo archivo sirve para correr una prueba rápida con 1 usuario o una carga real con 50, sin editar nada — solo cambia el comando con el que se ejecuta. El archivo se llama <span class="inline-code">firebase_security_performance.jmx</span> y queda versionado en el repositorio del proyecto, así cualquiera puede volver a correrlo para confirmar que las reglas de seguridad siguen funcionando.</p>
+
+    <p class="section-note" style="margin-bottom:8px;"><b>Glosario rápido</b> (si es tu primera vez con JMeter o pruebas de carga):</p>
+    <dl class="glossary">
+      <div class="gterm"><dt>401</dt><dd>Código HTTP que significa "no autorizado". Es la respuesta que Firebase manda cuando falta iniciar sesión.</dd></div>
+      <div class="gterm"><dt>Permission denied</dt><dd>El mensaje exacto que Firebase pone dentro de la respuesta 401, confirmando que el rechazo fue por permisos y no por otro error.</dd></div>
+      <div class="gterm"><dt>Usuario concurrente (en JMeter)</dt><dd>Un "hilo" que manda peticiones de forma independiente y al mismo tiempo que los demás, simulando a una persona real usando la app.</dd></div>
+      <div class="gterm"><dt>Rampa de arranque</dt><dd>Cuántos segundos tarda JMeter en arrancar a todos los usuarios. Con rampa de 5 s y 20 usuarios, arranca uno cada 0.25 s en vez de los 20 de golpe.</dd></div>
+      <div class="gterm"><dt>Percentil (p50, p90, p99)</dt><dd>p50 = la mitad de las peticiones respondió en ese tiempo o menos. p90 = el 90% lo hizo en ese tiempo o menos. p99 mide casi el peor caso (el 1% más lento).</dd></div>
+      <div class="gterm"><dt>req/s</dt><dd>Peticiones por segundo: cuántas peticiones completas maneja el sistema en promedio durante la prueba.</dd></div>
+    </dl>
   </section>
 
   <section>
@@ -145,25 +163,33 @@
         <thead><tr><th>Caso</th><th>Petición</th><th>Esperado</th><th>Resultado</th></tr></thead>
         <tbody>
           <tr>
-            <td>Lectura de temperatura sin token</td>
+            <td>Lectura de temperatura sin token
+              <span class="why">Por qué: si esto no estuviera bloqueado, cualquiera con la URL podría ver los datos del invernadero sin permiso.</span>
+            </td>
             <td class="path">GET /temperature/current.json</td>
             <td class="path">401</td>
             <td><span class="badge ok">✓ 401</span></td>
           </tr>
           <tr>
-            <td>Escritura de temperatura sin token</td>
+            <td>Escritura de temperatura sin token
+              <span class="why">Por qué: sin este bloqueo, cualquiera podría "inventar" una lectura falsa y dañar el historial real.</span>
+            </td>
             <td class="path">PUT /temperature/current.json<br>body: 999</td>
             <td class="path">401</td>
             <td><span class="badge ok">✓ 401</span></td>
           </tr>
           <tr>
-            <td>LED con valor inválido (no booleano) sin token</td>
+            <td>LED con valor inválido (no booleano) sin token
+              <span class="why">Por qué: confirma que ni con un dato mal formado se cuela una escritura — la autenticación se revisa antes que el formato del dato.</span>
+            </td>
             <td class="path">PUT /led.json<br>body: "no-es-booleano"</td>
             <td class="path">401</td>
             <td><span class="badge ok">✓ 401</span></td>
           </tr>
           <tr>
-            <td>Nodo no declarado en las reglas</td>
+            <td>Nodo no declarado en las reglas
+              <span class="why">Por qué: asegura que no haya rutas "olvidadas" en Firebase que alguien pueda explotar por accidente.</span>
+            </td>
             <td class="path">GET /config/wifi_password.json</td>
             <td class="path">401</td>
             <td><span class="badge ok">✓ 401</span></td>
