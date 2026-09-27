@@ -49,6 +49,7 @@
     <string name="account_dialog_signed_in">Sesión iniciada como %1$s</string>
     <string name="account_dialog_logout">Cerrar sesión</string>
     <string name="account_dialog_cancel">Cancelar</string>
+    <string name="account_dialog_dark_mode">Modo oscuro</string>
 
     <!-- Main -->
     <string name="main_title">Invernadero</string>
@@ -106,6 +107,7 @@
     <string name="history_today">Hoy</string>
     <string name="history_yesterday">Ayer</string>
     <string name="history_empty">Aún no hay lecturas registradas</string>
+    <string name="history_empty_subtitle">En cuanto el Arduino envíe la primera temperatura, aparecerá aquí</string>
     <string name="history_humidity">%1$.0f %% HR</string>
     <string name="btn_back">Volver</string>
 </resources>

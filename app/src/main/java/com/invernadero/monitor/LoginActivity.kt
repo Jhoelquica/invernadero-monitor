@@ -262,6 +262,7 @@ class LoginActivity : AppCompatActivity() {
 
     private fun goToMain() {
         startActivity(Intent(this, MainActivity::class.java))
+        applyFadeTransition()
         finish()
     }
 

@@ -474,6 +474,7 @@ class MainActivity : AppCompatActivity(), BluetoothHelper.Listener {
 
     private fun goToLogin() {
         startActivity(Intent(this, LoginActivity::class.java))
+        applyFadeTransition()
         finish()
     }
 
