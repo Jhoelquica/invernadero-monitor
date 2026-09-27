@@ -28,6 +28,11 @@
         <item name="postSplashScreenTheme">@style/Theme.Invernadero</item>
     </style>
 
+    <style name="ShapeAppearance.Inv.Circle" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
     <style name="ShapeAppearance.Inv.Medium" parent="ShapeAppearance.Material3.MediumComponent">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">20dp</item>

@@ -50,6 +50,8 @@
     <string name="account_dialog_logout">Cerrar sesión</string>
     <string name="account_dialog_cancel">Cancelar</string>
     <string name="account_dialog_dark_mode">Modo oscuro</string>
+    <string name="account_dialog_logout_confirm_title">¿Cerrar sesión?</string>
+    <string name="account_dialog_logout_confirm_message">Tendrás que volver a iniciar sesión para ver tu invernadero.</string>
 
     <!-- Main -->
     <string name="main_title">Invernadero</string>

@@ -12,7 +12,6 @@ import android.os.SystemClock
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -26,6 +25,7 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.materialswitch.MaterialSwitch
 import com.google.android.material.slider.Slider
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -236,7 +236,7 @@ class MainActivity : AppCompatActivity(), BluetoothHelper.Listener {
     }
 
     private fun notifyNotConnected() {
-        Toast.makeText(this, R.string.bt_led_not_connected, Toast.LENGTH_SHORT).show()
+        Snackbar.make(findViewById(R.id.main), R.string.bt_led_not_connected, Snackbar.LENGTH_SHORT).show()
     }
 
     private fun renderLed(on: Boolean) {

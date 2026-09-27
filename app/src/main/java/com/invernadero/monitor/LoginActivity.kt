@@ -7,7 +7,6 @@ import android.util.Patterns
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -22,6 +21,7 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.FirebaseNetworkException
@@ -38,6 +38,7 @@ class LoginActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
     private lateinit var credentialManager: CredentialManager
+    private lateinit var rootView: View
     private lateinit var loadingOverlay: View
     private lateinit var googleSignInButton: Button
 
@@ -88,6 +89,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun bindViews() {
+        rootView = findViewById(R.id.login_root)
         loadingOverlay = findViewById(R.id.loadingOverlay)
         googleSignInButton = findViewById(R.id.btnGoogleSignIn)
         tilEmail = findViewById(R.id.tilEmail)
@@ -129,7 +131,7 @@ class LoginActivity : AppCompatActivity() {
                 goToMain()
             } else {
                 Log.e(TAG, "Falló autenticación con correo/contraseña", result.exception)
-                Toast.makeText(this, mapAuthError(result.exception), Toast.LENGTH_LONG).show()
+                showMessage(mapAuthError(result.exception))
             }
         }
     }
@@ -170,9 +172,9 @@ class LoginActivity : AppCompatActivity() {
         auth.sendPasswordResetEmail(email).addOnCompleteListener(this) { result ->
             setLoading(false)
             if (result.isSuccessful) {
-                Toast.makeText(this, getString(R.string.login_reset_sent, email), Toast.LENGTH_LONG).show()
+                showMessage(getString(R.string.login_reset_sent, email))
             } else {
-                Toast.makeText(this, mapAuthError(result.exception), Toast.LENGTH_LONG).show()
+                showMessage(mapAuthError(result.exception))
             }
         }
     }
@@ -215,11 +217,7 @@ class LoginActivity : AppCompatActivity() {
             } catch (e: GetCredentialException) {
                 setLoading(false)
                 Log.e(TAG, "Error al obtener credencial", e)
-                Toast.makeText(
-                    this@LoginActivity,
-                    getString(R.string.login_error, e.message),
-                    Toast.LENGTH_SHORT
-                ).show()
+                showMessage(getString(R.string.login_error, e.message))
             }
         }
     }
@@ -232,7 +230,7 @@ class LoginActivity : AppCompatActivity() {
             firebaseAuthWithGoogle(googleIdTokenCredential.idToken)
         } else {
             setLoading(false)
-            Toast.makeText(this, getString(R.string.login_error_unsupported_credential), Toast.LENGTH_SHORT).show()
+            showMessage(getString(R.string.login_error_unsupported_credential))
         }
     }
 
@@ -245,12 +243,16 @@ class LoginActivity : AppCompatActivity() {
                     goToMain()
                 } else {
                     Log.e(TAG, "Falló la autenticación con Firebase", task.exception)
-                    Toast.makeText(this, getString(R.string.login_error_generic), Toast.LENGTH_SHORT).show()
+                    showMessage(getString(R.string.login_error_generic))
                 }
             }
     }
 
     // ---------- Comunes ----------
+
+    private fun showMessage(message: String) {
+        Snackbar.make(rootView, message, Snackbar.LENGTH_LONG).show()
+    }
 
     private fun setLoading(loading: Boolean) {
         loadingOverlay.visibility = if (loading) View.VISIBLE else View.GONE

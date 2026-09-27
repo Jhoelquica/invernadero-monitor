@@ -2,13 +2,22 @@ package com.invernadero.monitor
 
 import android.content.Intent
 import android.content.res.Configuration
+import android.graphics.BitmapFactory
 import android.view.LayoutInflater
+import android.view.View
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.imageview.ShapeableImageView
 import com.google.android.material.materialswitch.MaterialSwitch
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.net.URL
 
 object NavHelper {
 
@@ -42,11 +51,33 @@ object NavHelper {
 
     private fun showAccountDialog(activity: AppCompatActivity) {
         val user = FirebaseAuth.getInstance().currentUser
-        val who = user?.email ?: user?.displayName.orEmpty()
+        val displayName = user?.displayName?.takeIf { it.isNotBlank() }
+        val email = user?.email.orEmpty()
 
         val view = LayoutInflater.from(activity).inflate(R.layout.dialog_account, null)
-        view.findViewById<android.widget.TextView>(R.id.tvAccountEmail).text =
-            activity.getString(R.string.account_dialog_signed_in, who)
+        view.findViewById<TextView>(R.id.tvAccountName).text = displayName ?: email
+        val tvEmail = view.findViewById<TextView>(R.id.tvAccountEmail)
+        if (displayName != null) {
+            tvEmail.text = email
+            tvEmail.visibility = View.VISIBLE
+        } else {
+            tvEmail.visibility = View.GONE
+        }
+
+        val avatar = view.findViewById<ShapeableImageView>(R.id.ivAccountAvatar)
+        user?.photoUrl?.let { photoUrl ->
+            activity.lifecycleScope.launch {
+                val bitmap = withContext(Dispatchers.IO) {
+                    runCatching {
+                        URL(photoUrl.toString()).openStream().use { BitmapFactory.decodeStream(it) }
+                    }.getOrNull()
+                }
+                if (bitmap != null) {
+                    avatar.setImageBitmap(bitmap)
+                    avatar.visibility = View.VISIBLE
+                }
+            }
+        }
 
         val switchDarkMode = view.findViewById<MaterialSwitch>(R.id.switchDarkMode)
         switchDarkMode.isChecked = isCurrentlyDark(activity)
@@ -59,6 +90,15 @@ object NavHelper {
         MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.account_dialog_title)
             .setView(view)
+            .setPositiveButton(R.string.account_dialog_logout) { _, _ -> confirmLogout(activity) }
+            .setNegativeButton(R.string.account_dialog_cancel, null)
+            .show()
+    }
+
+    private fun confirmLogout(activity: AppCompatActivity) {
+        MaterialAlertDialogBuilder(activity)
+            .setTitle(R.string.account_dialog_logout_confirm_title)
+            .setMessage(R.string.account_dialog_logout_confirm_message)
             .setPositiveButton(R.string.account_dialog_logout) { _, _ ->
                 FirebaseAuth.getInstance().signOut()
                 activity.startActivity(
