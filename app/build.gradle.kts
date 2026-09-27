@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.google.gms.google.services)
+    jacoco
 }
 
 android {
@@ -22,6 +23,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            enableUnitTestCoverage = true
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -34,6 +38,32 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+}
+
+jacoco {
+    toolVersion = "0.8.12"
+}
+
+tasks.register<JacocoReport>("jacocoTestReport") {
+    dependsOn("testDebugUnitTest")
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+    val fileFilter = listOf(
+        "**/R.class", "**/R$*.class", "**/BuildConfig.*", "**/Manifest*.*",
+        "androidx/**", "**/databinding/**", "**/android/databinding/**"
+    )
+    val kotlinClasses = fileTree("${layout.buildDirectory.get()}/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes") {
+        exclude(fileFilter)
+    }
+    classDirectories.setFrom(files(kotlinClasses))
+    sourceDirectories.setFrom(files("$projectDir/src/main/java"))
+    executionData.setFrom(
+        fileTree(layout.buildDirectory.get()) {
+            include("outputs/unit_test_code_coverage/debugUnitTest/*.exec", "jacoco/*.exec")
+        }
+    )
 }
 
 dependencies {
@@ -58,4 +88,7 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.test.rules)
+    androidTestImplementation(platform(libs.firebase.bom))
+    androidTestImplementation(libs.firebase.auth)
 }
