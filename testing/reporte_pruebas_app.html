@@ -1,0 +1,189 @@
+<meta charset="utf-8">
+<title>Reporte de Pruebas App</title>
+<style>
+  :root{
+    --bg:#F6FAF7; --surface:#FFFFFF; --surface-2:#EFF6F1; --border:#D7E4DB;
+    --text:#12251A; --text-muted:#5B6E61; --accent:#157347; --accent-ink:#0B4C2E;
+    --ok:#1E8E5A; --ok-bg:#E4F5EA; --warn:#B8790A; --warn-bg:#FCF0D8; --info:#2B6CB0; --info-bg:#E6EFFA;
+    --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: 'IBM Plex Sans', system-ui, sans-serif;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0A1712; --surface:#0F2018; --surface-2:#132A1F; --border:#20402E;
+      --text:#E7F3EA; --text-muted:#9FB6A8; --accent:#4ADE94; --accent-ink:#BEF3D3;
+      --ok:#4ADE94; --ok-bg:#123924; --warn:#F5C15A; --warn-bg:#3A2A0C; --info:#7FB0EE; --info-bg:#132A3E;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0A1712; --surface:#0F2018; --surface-2:#132A1F; --border:#20402E;
+    --text:#E7F3EA; --text-muted:#9FB6A8; --accent:#4ADE94; --accent-ink:#BEF3D3;
+    --ok:#4ADE94; --ok-bg:#123924; --warn:#F5C15A; --warn-bg:#3A2A0C; --info:#7FB0EE; --info-bg:#132A3E;
+    color-scheme: dark;
+  }
+  *{box-sizing:border-box}
+  body{background:var(--bg); color:var(--text); font-family:var(--sans); margin:0; padding-inline:16px; padding-block:28px;}
+  .wrap{max-width:980px; margin:0 auto;}
+  .kicker{font-family:var(--mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); margin:0 0 6px;}
+  h1{font-size:28px; line-height:1.15; margin:0 0 6px; text-wrap:balance;}
+  .sub{color:var(--text-muted); font-size:14.5px; margin:0 0 26px; max-width:70ch;}
+  code.inline{font-family:var(--mono); background:var(--surface-2); padding:1px 6px; border-radius:4px; font-size:12.5px;}
+  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:10px;}
+  @media (max-width:640px){ .stats{grid-template-columns:repeat(2,1fr);} }
+  .stat{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 14px 12px;}
+  .stat .label{font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em;}
+  .stat .value{font-family:var(--mono); font-size:22px; font-weight:600; margin-top:4px; font-variant-numeric:tabular-nums;}
+  .stat.ok .value{color:var(--ok);}
+  section{margin-bottom:30px;}
+  h2{font-size:18px; margin:0 0 4px;}
+  .section-note{color:var(--text-muted); font-size:13.5px; margin:0 0 14px; max-width:75ch;}
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden;}
+  table{width:100%; border-collapse:collapse; font-size:13.5px;}
+  th{text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--text-muted); font-weight:600; padding:10px 12px; border-bottom:1px solid var(--border); background:var(--surface-2);}
+  td{padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  .path{font-family:var(--mono); font-size:12.5px;}
+  .badge{display:inline-flex; align-items:center; gap:5px; font-family:var(--mono); font-size:12px; padding:3px 8px; border-radius:999px; font-weight:600;}
+  .badge.ok{background:var(--ok-bg); color:var(--ok);}
+  .tablewrap{overflow-x:auto;}
+  .steps{display:flex; flex-direction:column; gap:0; margin-bottom:4px;}
+  .step{display:flex; gap:12px; padding:10px 0; border-bottom:1px dashed var(--border);}
+  .step:last-child{border-bottom:none; padding-bottom:0;}
+  .step .num{flex:none; width:24px; height:24px; border-radius:50%; background:var(--surface-2); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:11.5px; font-weight:600; color:var(--accent);}
+  .step .body b{display:block; font-size:13.5px; margin-bottom:2px;}
+  .step .body span{color:var(--text-muted); font-size:13px;}
+  .callout{display:flex; gap:12px; background:var(--info-bg); border:1px solid var(--border); border-radius:12px; padding:14px 16px; font-size:13.5px; color:var(--text); margin-top:6px;}
+  .callout.warn{background:var(--warn-bg);}
+  .callout .dot{flex:none; width:8px; height:8px; border-radius:50%; background:var(--info); margin-top:6px;}
+  .callout.warn .dot{background:var(--warn);}
+  .callout b{color:var(--info);}
+  .callout.warn b{color:var(--warn);}
+  .shots{display:grid; grid-template-columns:repeat(4,1fr); gap:10px;}
+  @media (max-width:760px){ .shots{grid-template-columns:repeat(2,1fr);} }
+  .shot{background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden;}
+  .shot img{width:100%; display:block; border-bottom:1px solid var(--border);}
+  .shot .cap{padding:8px 10px; font-size:12px; color:var(--text-muted);}
+  footer{color:var(--text-muted); font-size:12.5px; border-top:1px solid var(--border); padding-top:16px; margin-top:8px;}
+  footer a{color:var(--accent);}
+</style>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<div class="wrap">
+  <p class="kicker">Invernadero Monitor · Validación y Pruebas de Software</p>
+  <h1>Reporte de pruebas de la app: unitarias, sistema e integración</h1>
+  <p class="sub">Resultados reales de la corrida del 27/09/2026 sobre <code class="inline">com.invernadero.monitor</code>, en un emulador Pixel 8a (Android 15). Para las pruebas de seguridad y rendimiento contra Firebase con JMeter, ver el reporte aparte.</p>
+
+  <section>
+    <h2>¿Cuál es cuál? (por si viste el reporte crudo de Gradle)</h2>
+    <p class="section-note">Los tres niveles corren de forma distinta y prueban cosas distintas. Es fácil confundirlos porque Gradle genera un HTML parecido para cada uno.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="num">1</div>
+        <div class="body"><b>Unitarias (JUnit)</b><span>Corren en la PC, sin Android real, en segundos. Prueban funciones puras: lógica de umbral, parseo del protocolo Bluetooth, cálculo de estadísticas. Reporte: <code class="inline">tests/testDebugUnitTest</code>.</span></div>
+      </div>
+      <div class="step">
+        <div class="num">2</div>
+        <div class="body"><b>Sistema / UI (Espresso)</b><span>Corren dentro de un emulador o celular real, abriendo pantallas de verdad y tocando botones por código. Prueban que la interfaz se comporte bien. Reporte: <code class="inline">androidTests/connected/debug</code> — <b>esta es la captura que mandaste</b>.</span></div>
+      </div>
+      <div class="step">
+        <div class="num">3</div>
+        <div class="body"><b>Integración</b><span>También corren en el emulador, pero en vez de tocar la pantalla, hablan directo con un sistema externo real (aquí, Firebase) usando el mismo SDK que usa la app. Confirman que las piezas realmente se conectan entre sí, no solo que cada una funciona sola.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>1. Pruebas unitarias (JUnit + cobertura JaCoCo)</h2>
+    <p class="section-note">29 pruebas, 0 fallas. La cobertura se mide por clase: la lógica pura (sin Android) llega a 80-100%; las pantallas (Activities) dan 0% aquí porque necesitan un dispositivo — para eso están las pruebas de sistema de abajo.</p>
+    <div class="stats">
+      <div class="stat ok"><div class="label">Pruebas</div><div class="value">29</div></div>
+      <div class="stat ok"><div class="label">Fallas</div><div class="value">0</div></div>
+      <div class="stat"><div class="label">Cobertura global*</div><div class="value">12%</div></div>
+      <div class="stat"><div class="label">Duración</div><div class="value">~1 s</div></div>
+    </div>
+    <div class="card tablewrap">
+      <table>
+        <thead><tr><th>Clase</th><th>Qué prueba</th><th>Cobertura</th></tr></thead>
+        <tbody>
+          <tr><td class="path">ArduinoProtocol</td><td>Parseo del protocolo Bluetooth con el Arduino</td><td><span class="badge ok">96%</span></td></tr>
+          <tr><td class="path">TemperatureStats</td><td>Mínimo/máximo/promedio del día, nivel de alerta</td><td><span class="badge ok">89%</span></td></tr>
+          <tr><td class="path">SensorReading</td><td>Modelo de una lectura del historial</td><td><span class="badge ok">92%</span></td></tr>
+          <tr><td class="path">MainActivity (lógica de umbral)</td><td>Cuándo se considera "temperatura alta"</td><td><span class="badge ok">80%</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="section-note" style="margin-top:10px; margin-bottom:0;">*El 12% "global" incluye todas las Activities y adaptadores (que dan 0% aquí a propósito). No es una cifra de calidad del código, es solo el resultado de mezclar clases que SÍ se pueden probar sin Android con clases que NO.</p>
+  </section>
+
+  <section>
+    <h2>2. Pruebas de sistema / UI (Espresso, en el emulador)</h2>
+    <p class="section-note">12 pruebas, 100% exitosas. Cada una abre una pantalla real de la app y verifica que se vea y se comporte como debe.</p>
+    <div class="stats">
+      <div class="stat ok"><div class="label">Pruebas</div><div class="value">12</div></div>
+      <div class="stat ok"><div class="label">Fallas</div><div class="value">0</div></div>
+      <div class="stat ok"><div class="label">Éxito</div><div class="value">100%</div></div>
+      <div class="stat"><div class="label">Duración</div><div class="value">15.5 s</div></div>
+    </div>
+    <div class="card tablewrap">
+      <table>
+        <thead><tr><th>Clase</th><th>Qué verifica</th><th>Pruebas</th><th>Resultado</th></tr></thead>
+        <tbody>
+          <tr><td class="path">LoginActivityTest</td><td>Validación del formulario, alternar login/registro</td><td>5</td><td><span class="badge ok">✓ 100%</span></td></tr>
+          <tr><td class="path">MainActivityTest</td><td>Pantalla principal completa, navegación a Historial</td><td>2</td><td><span class="badge ok">✓ 100%</span></td></tr>
+          <tr><td class="path">HistoryActivityTest</td><td>Pantalla accesible sin sesión, lista o vacío</td><td>2</td><td><span class="badge ok">✓ 100%</span></td></tr>
+          <tr><td class="path">FirebaseIntegrationTest</td><td>Ver sección 3 abajo</td><td>2</td><td><span class="badge ok">✓ 100%</span></td></tr>
+          <tr><td class="path">ExampleInstrumentedTest</td><td>Prueba de ejemplo del asistente de Android Studio</td><td>1</td><td><span class="badge ok">✓ 100%</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>3. Prueba de integración (FirebaseIntegrationTest)</h2>
+    <p class="section-note">A diferencia de JMeter (que le habla a Firebase por HTTP crudo), esta prueba usa el mismo SDK de Android que usa la app real, para confirmar que las piezas conectan de verdad.</p>
+    <div class="card tablewrap">
+      <table>
+        <thead><tr><th>Caso</th><th>Qué hace</th><th>Resultado</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Escritura y lectura autenticada</td>
+            <td>Guarda una lectura de temperatura real en Firebase, la vuelve a leer, y compara que sea exactamente igual a la original</td>
+            <td><span class="badge ok">✓ Coincide</span></td>
+          </tr>
+          <tr>
+            <td>Escritura sin autenticar</td>
+            <td>Cierra sesión y trata de escribir; confirma que Firebase lo rechace, igual que probamos con JMeter pero esta vez desde la app misma</td>
+            <td><span class="badge ok">✓ Rechazada</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Evidencia visual (capturas reales del emulador)</h2>
+    <p class="section-note">Recorrido completo capturado mientras corrían las pruebas: login, validación, pantalla principal, historial, cuenta y modo oscuro.</p>
+    <div class="shots">
+      <div class="shot"><img src="screenshots/01_login_vacio.png"><div class="cap">Login</div></div>
+      <div class="shot"><img src="screenshots/02_login_errores_validacion.png"><div class="cap">Validación de campos</div></div>
+      <div class="shot"><img src="screenshots/03_main_conectado.png"><div class="cap">Pantalla principal</div></div>
+      <div class="shot"><img src="screenshots/04_historial.png"><div class="cap">Historial (datos reales)</div></div>
+      <div class="shot"><img src="screenshots/05_dialogo_cuenta.png"><div class="cap">Diálogo de Cuenta</div></div>
+      <div class="shot"><img src="screenshots/06_modo_oscuro.png"><div class="cap">Modo oscuro aplicado</div></div>
+      <div class="shot"><img src="screenshots/07a_cortina_notificaciones.png"><div class="cap">Notificación de alerta</div></div>
+      <div class="shot"><img src="screenshots/07_notificacion_abre_app.png"><div class="cap">Notificación abre la app</div></div>
+    </div>
+  </section>
+
+  <div class="callout warn">
+    <div class="dot"></div>
+    <div><b>Hallazgo del entorno de pruebas.</b> El servicio de autocompletado de Google (Autofill) en el emulador interfería con Espresso: mostraba el diálogo "¿Guardar contraseña?" al cerrar una pantalla con el campo de contraseña lleno, y ese diálogo le robaba el foco a la siguiente pantalla y hacía fallar la prueba siguiente. Se desactivó el servicio de autofill y las animaciones del sistema en el emulador antes de correr las pruebas — es una recomendación oficial de configuración de entorno para Espresso, no un bug de la app.</div>
+  </div>
+
+  <footer>
+    Herramientas: JUnit 4 + JaCoCo 0.8.12 (unitarias), Espresso 3.7 sobre AndroidJUnit4 (sistema e integración), emulador Pixel 8a API 35. Todo el código de las pruebas está versionado en <code class="inline">app/src/test</code> y <code class="inline">app/src/androidTest</code> del repositorio. Pruebas de seguridad/rendimiento con JMeter: reporte aparte.
+  </footer>
+</div>
