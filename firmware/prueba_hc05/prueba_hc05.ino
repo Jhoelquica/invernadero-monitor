@@ -23,7 +23,7 @@ const uint8_t PIN_LED = 13;
 
 SoftwareSerial bt(PIN_BT_RX, PIN_BT_TX);
 
-unsigned long lastHello = 0;
+unsigned long lastHello = 0; 
 bool ledState = false;
 
 void setup() {
