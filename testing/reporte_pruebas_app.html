@@ -67,6 +67,13 @@
   .shot .cap{padding:8px 10px; font-size:12px; color:var(--text-muted);}
   footer{color:var(--text-muted); font-size:12.5px; border-top:1px solid var(--border); padding-top:16px; margin-top:8px;}
   footer a{color:var(--accent);}
+
+  details.testgroup{background:var(--surface); border:1px solid var(--border); border-radius:12px; margin-bottom:8px; overflow:hidden;}
+  details.testgroup summary{cursor:pointer; padding:12px 14px; font-family:var(--mono); font-size:13px; font-weight:600; list-style:none; display:flex; align-items:center; justify-content:space-between; gap:10px;}
+  details.testgroup summary::-webkit-details-marker{display:none;}
+  details.testgroup summary .count{font-family:var(--sans); font-weight:400; color:var(--text-muted); font-size:12.5px; white-space:nowrap;}
+  details.testgroup ul{margin:0; padding:0 16px 14px 34px; font-size:13px; color:var(--text); display:flex; flex-direction:column; gap:6px;}
+  details.testgroup[open] summary{border-bottom:1px solid var(--border);}
 </style>
 
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
@@ -115,7 +122,68 @@
         </tbody>
       </table>
     </div>
-    <p class="section-note" style="margin-top:10px; margin-bottom:0;">*El 12% "global" incluye todas las Activities y adaptadores (que dan 0% aquí a propósito). No es una cifra de calidad del código, es solo el resultado de mezclar clases que SÍ se pueden probar sin Android con clases que NO.</p>
+    <p class="section-note" style="margin-top:10px; margin-bottom:14px;">*El 12% "global" incluye todas las Activities y adaptadores (que dan 0% aquí a propósito). No es una cifra de calidad del código, es solo el resultado de mezclar clases que SÍ se pueden probar sin Android con clases que NO.</p>
+
+    <p class="section-note" style="margin-bottom:8px;"><b>Detalle de las 29 pruebas</b> (toca cada clase para desplegar):</p>
+
+    <details class="testgroup">
+      <summary>BluetoothHelperParseTest <span class="count">11 pruebas</span></summary>
+      <ul>
+        <li>Parsea una línea completa de lectura periódica (T, H, L, M, B, S).</li>
+        <li>Mantiene compatibilidad con el formato antiguo, solo temperatura.</li>
+        <li>Parsea el eco de estado sin temperatura.</li>
+        <li>Ignora retorno de carro y espacios.</li>
+        <li>Acepta temperaturas negativas dentro de rango.</li>
+        <li>Reconoce PONG y error de sensor (E:DHT).</li>
+        <li>Rechaza líneas sin campos válidos.</li>
+        <li>Descarta campos fuera de rango pero conserva los válidos.</li>
+        <li>Una línea con solo campos inválidos se descarta por completo.</li>
+        <li>Los comandos salientes usan el formato correcto del protocolo.</li>
+        <li>Los comandos limitan los valores al rango permitido.</li>
+      </ul>
+    </details>
+
+    <details class="testgroup">
+      <summary>MainActivityThresholdTest <span class="count">8 pruebas</span></summary>
+      <ul>
+        <li>Temperatura por debajo del umbral no se considera alta.</li>
+        <li>Temperatura igual al umbral no se considera alta.</li>
+        <li>Temperatura por encima del umbral sí se considera alta.</li>
+        <li>Usa el umbral por defecto cuando no se especifica uno.</li>
+        <li>No dispara alerta si no hay lectura previa y está dentro del rango.</li>
+        <li>Dispara alerta la primera vez que la temperatura cruza el umbral.</li>
+        <li>No repite la alerta si la temperatura se mantiene alta.</li>
+        <li>Dispara nuevamente si la temperatura baja y vuelve a subir.</li>
+      </ul>
+    </details>
+
+    <details class="testgroup">
+      <summary>TemperatureStatsTest <span class="count">5 pruebas</span></summary>
+      <ul>
+        <li>Calcula mínimo, máximo y promedio del día correctamente.</li>
+        <li>Solo considera lecturas desde el inicio del período indicado.</li>
+        <li>Devuelve null si no hay lecturas en el período.</li>
+        <li>El inicio del día es medianoche en hora local.</li>
+        <li>Calcula bien el nivel de alerta respecto al umbral.</li>
+      </ul>
+    </details>
+
+    <details class="testgroup">
+      <summary>SensorReadingTest <span class="count">4 pruebas</span></summary>
+      <ul>
+        <li>El constructor sin argumentos usa valores por defecto (requisito de Firebase).</li>
+        <li>Dos lecturas con los mismos datos son iguales.</li>
+        <li>Lecturas con distinto valor no son iguales.</li>
+        <li><code class="inline">copy()</code> genera una variante manteniendo el resto de campos.</li>
+      </ul>
+    </details>
+
+    <details class="testgroup">
+      <summary>ExampleUnitTest <span class="count">1 prueba</span></summary>
+      <ul>
+        <li>Prueba de ejemplo generada por el asistente de Android Studio (2+2=4).</li>
+      </ul>
+    </details>
   </section>
 
   <section>
@@ -139,6 +207,50 @@
         </tbody>
       </table>
     </div>
+
+    <p class="section-note" style="margin-top:14px; margin-bottom:8px;"><b>Detalle de las 12 pruebas</b> (toca cada clase para desplegar):</p>
+
+    <details class="testgroup">
+      <summary>LoginActivityTest <span class="count">5 pruebas</span></summary>
+      <ul>
+        <li>Los elementos principales del login son visibles (correo, contraseña, botones).</li>
+        <li>Formulario vacío: al tocar "Iniciar sesión" se muestran errores en ambos campos.</li>
+        <li>Correo inválido: muestra el error solo en el campo de correo.</li>
+        <li>Contraseña corta: muestra el error solo en el campo de contraseña.</li>
+        <li>Al tocar "Regístrate" cambian los textos del botón y del enlace a modo registro.</li>
+      </ul>
+    </details>
+
+    <details class="testgroup">
+      <summary>MainActivityTest <span class="count">2 pruebas</span></summary>
+      <ul>
+        <li>Los elementos principales son visibles (temperatura, LED, brillo, umbral, gráfico, nav inferior).</li>
+        <li>Tocar "Historial" en la navegación abre HistoryActivity correctamente.</li>
+      </ul>
+    </details>
+
+    <details class="testgroup">
+      <summary>HistoryActivityTest <span class="count">2 pruebas</span></summary>
+      <ul>
+        <li>El título y la navegación inferior son visibles sin necesidad de sesión iniciada.</li>
+        <li>Siempre se muestra exactamente uno de: la lista de lecturas o el estado vacío.</li>
+      </ul>
+    </details>
+
+    <details class="testgroup">
+      <summary>FirebaseIntegrationTest <span class="count">2 pruebas</span></summary>
+      <ul>
+        <li>Escritura y lectura autenticada: el dato leído coincide exactamente con el original.</li>
+        <li>Escritura sin autenticar: Firebase la rechaza, confirmado desde el SDK real de la app.</li>
+      </ul>
+    </details>
+
+    <details class="testgroup">
+      <summary>ExampleInstrumentedTest <span class="count">1 prueba</span></summary>
+      <ul>
+        <li>El contexto de la app tiene el paquete correcto (com.invernadero.monitor).</li>
+      </ul>
+    </details>
   </section>
 
   <section>
