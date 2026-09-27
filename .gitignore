@@ -13,3 +13,6 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Resultados generados de JMeter (se regeneran al correr el plan .jmx)
+/testing/jmeter/results/
