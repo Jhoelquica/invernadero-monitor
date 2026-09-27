@@ -13,11 +13,32 @@
     <string name="login_feature_monitor">Temperatura y humedad en tiempo real</string>
     <string name="login_feature_control">Control del LED por Bluetooth</string>
     <string name="login_feature_history">Historial y alertas por umbral</string>
-    <string name="login_footer">Acceso seguro con tu cuenta de Google</string>
+    <string name="login_footer">Tus datos viajan cifrados; solo tú puedes ver tu invernadero</string>
     <string name="btn_google_sign_in">Continuar con Google</string>
     <string name="login_error">No se pudo iniciar sesión: %1$s</string>
     <string name="login_error_generic">Error de autenticación</string>
     <string name="login_error_unsupported_credential">Tipo de credencial no soportado</string>
+
+    <string name="login_email_label">Correo electrónico</string>
+    <string name="login_password_label">Contraseña</string>
+    <string name="login_btn_signin">Iniciar sesión</string>
+    <string name="login_btn_register">Crear cuenta</string>
+    <string name="login_toggle_to_register">¿No tienes cuenta? Regístrate</string>
+    <string name="login_toggle_to_signin">¿Ya tienes cuenta? Inicia sesión</string>
+    <string name="login_forgot_password">¿Olvidaste tu contraseña?</string>
+    <string name="login_reset_sent">Te enviamos un enlace a %1$s para restablecer tu contraseña</string>
+    <string name="login_or_divider">o</string>
+    <string name="login_error_email_required">Ingresa tu correo</string>
+    <string name="login_error_email_invalid">Ingresa un correo válido</string>
+    <string name="login_error_password_required">Ingresa tu contraseña</string>
+    <string name="login_error_password_short">La contraseña debe tener al menos 6 caracteres</string>
+
+    <string name="auth_error_user_not_found">No existe una cuenta con ese correo</string>
+    <string name="auth_error_invalid_credentials">Correo o contraseña incorrectos</string>
+    <string name="auth_error_email_in_use">Ya existe una cuenta con ese correo</string>
+    <string name="auth_error_weak_password">Elige una contraseña de al menos 6 caracteres</string>
+    <string name="auth_error_not_enabled">El inicio de sesión con correo y contraseña no está habilitado en este proyecto de Firebase</string>
+    <string name="auth_error_network">Sin conexión a internet, intenta de nuevo</string>
 
     <!-- Navegación -->
     <string name="nav_home">Inicio</string>

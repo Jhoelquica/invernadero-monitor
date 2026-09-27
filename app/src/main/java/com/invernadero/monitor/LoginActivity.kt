@@ -3,9 +3,10 @@ package com.invernadero.monitor
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.util.Patterns
 import android.view.View
 import android.widget.Button
-import android.widget.ProgressBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -19,7 +20,17 @@ import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.lifecycleScope
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.progressindicator.LinearProgressIndicator
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
+import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthException
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.launch
 
@@ -27,8 +38,18 @@ class LoginActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
     private lateinit var credentialManager: CredentialManager
-    private lateinit var progressBar: ProgressBar
-    private lateinit var signInButton: Button
+    private lateinit var progressBar: LinearProgressIndicator
+    private lateinit var googleSignInButton: Button
+
+    private lateinit var tilEmail: TextInputLayout
+    private lateinit var tilPassword: TextInputLayout
+    private lateinit var etEmail: TextInputEditText
+    private lateinit var etPassword: TextInputEditText
+    private lateinit var btnEmailAction: MaterialButton
+    private lateinit var tvToggleMode: TextView
+    private lateinit var tvForgotPassword: TextView
+
+    private var isRegisterMode = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,10 +63,14 @@ class LoginActivity : AppCompatActivity() {
 
         auth = FirebaseAuth.getInstance()
         credentialManager = CredentialManager.create(this)
-        progressBar = findViewById(R.id.progressBar)
+        bindViews()
 
-        signInButton = findViewById(R.id.btnGoogleSignIn)
-        signInButton.setOnClickListener { launchGoogleSignIn() }
+        googleSignInButton.setOnClickListener { launchGoogleSignIn() }
+        btnEmailAction.setOnClickListener { onEmailActionClicked() }
+        tvToggleMode.setOnClickListener { toggleMode() }
+        tvForgotPassword.setOnClickListener { sendPasswordReset() }
+
+        updateModeUi()
     }
 
     override fun onStart() {
@@ -54,6 +79,112 @@ class LoginActivity : AppCompatActivity() {
             goToMain()
         }
     }
+
+    private fun bindViews() {
+        progressBar = findViewById(R.id.progressBar)
+        googleSignInButton = findViewById(R.id.btnGoogleSignIn)
+        tilEmail = findViewById(R.id.tilEmail)
+        tilPassword = findViewById(R.id.tilPassword)
+        etEmail = findViewById(R.id.etEmail)
+        etPassword = findViewById(R.id.etPassword)
+        btnEmailAction = findViewById(R.id.btnEmailAction)
+        tvToggleMode = findViewById(R.id.tvToggleMode)
+        tvForgotPassword = findViewById(R.id.tvForgotPassword)
+    }
+
+    // ---------- Correo y contraseña ----------
+
+    private fun toggleMode() {
+        isRegisterMode = !isRegisterMode
+        updateModeUi()
+    }
+
+    private fun updateModeUi() {
+        btnEmailAction.setText(if (isRegisterMode) R.string.login_btn_register else R.string.login_btn_signin)
+        tvToggleMode.setText(if (isRegisterMode) R.string.login_toggle_to_signin else R.string.login_toggle_to_register)
+        tvForgotPassword.visibility = if (isRegisterMode) View.INVISIBLE else View.VISIBLE
+    }
+
+    private fun onEmailActionClicked() {
+        val email = etEmail.text?.toString()?.trim().orEmpty()
+        val password = etPassword.text?.toString().orEmpty()
+        if (!validateForm(email, password)) return
+
+        setLoading(true)
+        val task = if (isRegisterMode) {
+            auth.createUserWithEmailAndPassword(email, password)
+        } else {
+            auth.signInWithEmailAndPassword(email, password)
+        }
+        task.addOnCompleteListener(this) { result ->
+            setLoading(false)
+            if (result.isSuccessful) {
+                goToMain()
+            } else {
+                Log.e(TAG, "Falló autenticación con correo/contraseña", result.exception)
+                Toast.makeText(this, mapAuthError(result.exception), Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun validateForm(email: String, password: String): Boolean {
+        tilEmail.error = null
+        tilPassword.error = null
+        var valid = true
+
+        if (email.isEmpty()) {
+            tilEmail.error = getString(R.string.login_error_email_required)
+            valid = false
+        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            tilEmail.error = getString(R.string.login_error_email_invalid)
+            valid = false
+        }
+
+        if (password.isEmpty()) {
+            tilPassword.error = getString(R.string.login_error_password_required)
+            valid = false
+        } else if (password.length < 6) {
+            tilPassword.error = getString(R.string.login_error_password_short)
+            valid = false
+        }
+
+        return valid
+    }
+
+    private fun sendPasswordReset() {
+        val email = etEmail.text?.toString()?.trim().orEmpty()
+        if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            tilEmail.error = getString(R.string.login_error_email_invalid)
+            return
+        }
+        tilEmail.error = null
+
+        setLoading(true)
+        auth.sendPasswordResetEmail(email).addOnCompleteListener(this) { result ->
+            setLoading(false)
+            if (result.isSuccessful) {
+                Toast.makeText(this, getString(R.string.login_reset_sent, email), Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(this, mapAuthError(result.exception), Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun mapAuthError(exception: Exception?): String = when (exception) {
+        is FirebaseAuthInvalidUserException -> getString(R.string.auth_error_user_not_found)
+        is FirebaseAuthInvalidCredentialsException -> getString(R.string.auth_error_invalid_credentials)
+        is FirebaseAuthUserCollisionException -> getString(R.string.auth_error_email_in_use)
+        is FirebaseAuthWeakPasswordException -> getString(R.string.auth_error_weak_password)
+        is FirebaseNetworkException -> getString(R.string.auth_error_network)
+        is FirebaseAuthException -> if (exception.errorCode == "ERROR_OPERATION_NOT_ALLOWED") {
+            getString(R.string.auth_error_not_enabled)
+        } else {
+            getString(R.string.login_error_generic)
+        }
+        else -> getString(R.string.login_error_generic)
+    }
+
+    // ---------- Google Sign-In ----------
 
     private fun launchGoogleSignIn() {
         val googleIdOption = GetGoogleIdOption.Builder()
@@ -112,9 +243,14 @@ class LoginActivity : AppCompatActivity() {
             }
     }
 
+    // ---------- Comunes ----------
+
     private fun setLoading(loading: Boolean) {
         progressBar.visibility = if (loading) View.VISIBLE else View.INVISIBLE
-        signInButton.isEnabled = !loading
+        googleSignInButton.isEnabled = !loading
+        btnEmailAction.isEnabled = !loading
+        tvToggleMode.isEnabled = !loading
+        tvForgotPassword.isEnabled = !loading
     }
 
     private fun goToMain() {
