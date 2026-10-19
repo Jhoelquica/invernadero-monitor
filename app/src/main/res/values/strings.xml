@@ -3,15 +3,21 @@
 
     <!-- Notificaciones -->
     <string name="notification_channel_name">Alertas de temperatura</string>
-    <string name="notification_channel_description">Notifica cuando la temperatura supera el umbral configurado</string>
+    <string name="notification_channel_description">Notifica cuando la temperatura supera el umbral o baja del mínimo de helada</string>
     <string name="notification_title">Temperatura alta</string>
     <string name="notification_text">La temperatura actual es %1$.1f°C, supera el umbral de %2$.1f°C</string>
+    <string name="notification_frost_title">Riesgo de helada</string>
+    <string name="notification_frost_text">La temperatura bajó a %1$.1f°C, por debajo del mínimo de %2$d°C</string>
+    <string name="notification_irrigation_channel_name">Alertas de riego</string>
+    <string name="notification_irrigation_channel_description">Notifica cuando un riego no logra humedecer el suelo</string>
+    <string name="notification_irrigation_title">Riego sin efecto</string>
+    <string name="notification_irrigation_text">La bomba funcionó %1$d s y el suelo pasó de %2$d %% a %3$d %%. Revisa la bomba o el depósito de agua.</string>
 
     <!-- Login -->
     <string name="login_title">Invernadero Monitor</string>
     <string name="login_subtitle">Monitorea y controla tu invernadero desde el celular</string>
     <string name="login_feature_monitor">Temperatura y humedad en tiempo real</string>
-    <string name="login_feature_control">Control del LED por Bluetooth</string>
+    <string name="login_feature_control">Control del LED y del riego por Bluetooth</string>
     <string name="login_feature_history">Historial y alertas por umbral</string>
     <string name="login_footer">Tus datos viajan cifrados; solo tú puedes ver tu invernadero</string>
     <string name="btn_google_sign_in">Continuar con Google</string>
@@ -66,6 +72,7 @@
     <string name="main_alert_ok">Rango normal</string>
     <string name="main_alert_near">Cerca del umbral</string>
     <string name="main_alert_high">Sobre el umbral</string>
+    <string name="main_alert_frost">Riesgo de helada</string>
     <string name="main_alert_sensor_error">Sensor desconectado</string>
     <string name="main_alert_none">Sin datos</string>
     <string name="main_last_update">Actualizado %1$s</string>
@@ -80,6 +87,41 @@
     <string name="control_auto">Modo automático</string>
     <string name="control_auto_hint">El Arduino enciende el LED al superar el umbral</string>
     <string name="control_threshold">Umbral: %1$d °C</string>
+    <string name="control_frost">Alerta de helada bajo: %1$d °C</string>
+
+    <string name="irrigation_title">Riego</string>
+    <string name="irrigation_simulated">Simulación</string>
+    <string name="irrigation_soil_label">Humedad del suelo</string>
+    <string name="irrigation_soil_placeholder">-- %</string>
+    <string name="irrigation_soil_format">%1$d %%</string>
+    <string name="irrigation_soil_dry">Suelo seco</string>
+    <string name="irrigation_soil_ok">Humedad adecuada</string>
+    <string name="irrigation_soil_wet">Suelo húmedo</string>
+    <string name="irrigation_soil_none">Sin datos</string>
+    <string name="irrigation_soil_error">Sensor de suelo desconectado</string>
+    <string name="irrigation_pump">Bomba de agua</string>
+    <string name="irrigation_pump_on">Regando…</string>
+    <string name="irrigation_pump_off">Apagada</string>
+    <string name="irrigation_auto">Riego automático</string>
+    <string name="irrigation_auto_hint">Riega cuando el suelo baja del umbral y verifica que la humedad suba</string>
+    <string name="irrigation_threshold">Regar por debajo de %1$d %%</string>
+    <string name="irrigation_fault">Simular bomba averiada</string>
+    <string name="irrigation_fault_hint">La bomba funciona pero el suelo no se moja</string>
+    <string name="irrigation_verify_title">Verificación de riegos</string>
+    <string name="irrigation_summary">Riegos hoy: %1$d · Verificados: %2$d · Sin efecto: %3$d</string>
+    <string name="irrigation_summary_none">Aún no hay riegos registrados hoy</string>
+    <string name="irrigation_row_title">%1$s · %2$s · %3$d s</string>
+    <string name="irrigation_row_detail">Suelo %1$d %% → %2$d %% · %3$s</string>
+    <string name="irrigation_row_simulated">%1$s · simulado</string>
+    <string name="irrigation_mode_auto">Automático</string>
+    <string name="irrigation_mode_manual">Manual</string>
+    <string name="irrigation_reason_threshold">umbral alcanzado</string>
+    <string name="irrigation_reason_max_time">tiempo máximo</string>
+    <string name="irrigation_reason_stopped">detenido</string>
+    <string name="irrigation_reason_sensor">falla del sensor</string>
+    <string name="irrigation_verdict_verified">Verificado</string>
+    <string name="irrigation_verdict_no_effect">Sin efecto</string>
+    <string name="irrigation_verdict_inconclusive">No concluyente</string>
 
     <string name="stats_title">Hoy</string>
     <string name="stats_min">Mín</string>

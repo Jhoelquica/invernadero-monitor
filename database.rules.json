@@ -36,6 +36,58 @@
         ".validate": "newData.isNumber()"
       }
     },
+    "soil": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "current": {
+        ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
+      },
+      "simulated": {
+        ".validate": "newData.isBoolean()"
+      },
+      "$other": {
+        ".validate": false
+      }
+    },
+    "irrigation": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "events": {
+        "$timestamp": {
+          ".validate": "newData.hasChildren(['timestamp', 'durationSeconds', 'soilBefore', 'soilAfter', 'reason', 'verdict'])",
+          "timestamp": {
+            ".validate": "newData.isNumber()"
+          },
+          "automatic": {
+            ".validate": "newData.isBoolean()"
+          },
+          "durationSeconds": {
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          },
+          "soilBefore": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
+          },
+          "soilAfter": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
+          },
+          "reason": {
+            ".validate": "newData.isString() && newData.val().matches(/^[UTME]$/)"
+          },
+          "verdict": {
+            ".validate": "newData.isString() && newData.val().matches(/^(VERIFIED|NO_EFFECT|INCONCLUSIVE)$/)"
+          },
+          "simulated": {
+            ".validate": "newData.isBoolean()"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      },
+      "$other": {
+        ".validate": false
+      }
+    },
     "$other": {
       ".read": false,
       ".write": false

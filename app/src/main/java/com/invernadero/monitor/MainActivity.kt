@@ -11,6 +11,7 @@ import android.os.Looper
 import android.os.SystemClock
 import android.view.View
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -57,7 +58,24 @@ class MainActivity : AppCompatActivity(), BluetoothHelper.Listener {
     private lateinit var switchAuto: MaterialSwitch
     private lateinit var sliderBrightness: Slider
     private lateinit var sliderThreshold: Slider
+    private lateinit var tvFrost: TextView
+    private lateinit var sliderFrost: Slider
     private lateinit var chartTemperature: TemperatureChartView
+
+    private lateinit var tvSimulated: TextView
+    private lateinit var tvSoil: TextView
+    private lateinit var tvSoilState: TextView
+    private lateinit var tvPumpState: TextView
+    private lateinit var tvSoilThreshold: TextView
+    private lateinit var tvIrrigationSummary: TextView
+    private lateinit var icSoil: ImageView
+    private lateinit var icPump: ImageView
+    private lateinit var switchPump: MaterialSwitch
+    private lateinit var switchIrrigationAuto: MaterialSwitch
+    private lateinit var switchFault: MaterialSwitch
+    private lateinit var sliderSoilThreshold: Slider
+    private lateinit var rowFault: View
+    private lateinit var listIrrigation: LinearLayout
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
@@ -65,9 +83,16 @@ class MainActivity : AppCompatActivity(), BluetoothHelper.Listener {
     private var syncingControls = false
     private var receivedFromBluetooth = false
     private var sensorError = false
-    private var previousTemperature: Double? = null
     private var lastTemperature: Double? = null
     private var threshold = DEFAULT_THRESHOLD_CELSIUS.toInt()
+    private var frostMinimum = AlertTracker.DEFAULT_FROST_CELSIUS
+    private val alerts = AlertTracker()
+
+    private var soilThreshold = IrrigationLogic.DEFAULT_SOIL_THRESHOLD
+    private var lastSoil: Int? = null
+    private var soilFromBluetooth = false
+    private var soilError = false
+    private var simulated = false
     private var pingSentAt = 0L
     private var lastMessageAt = 0L
 
@@ -109,6 +134,8 @@ class MainActivity : AppCompatActivity(), BluetoothHelper.Listener {
         database = FirebaseDatabase.getInstance()
         bluetooth = BluetoothHelper(this, this)
         threshold = AppPrefs.getThreshold(this)
+        frostMinimum = AppPrefs.getFrostMinimum(this)
+        soilThreshold = AppPrefs.getSoilThreshold(this)
 
         bindViews()
         user.displayName?.substringBefore(' ')?.takeIf { it.isNotBlank() }?.let {
@@ -119,12 +146,16 @@ class MainActivity : AppCompatActivity(), BluetoothHelper.Listener {
         NavHelper.setup(this, findViewById<BottomNavigationView>(R.id.bottomNav), R.id.nav_home)
 
         setupControls()
+        setupIrrigation()
         applyLevelStyle(null)
+        renderSoil()
         renderBluetoothChip(BluetoothHelper.State.DISCONNECTED, null)
 
         observeCurrentTemperature()
         observeHumidity()
         observeTemperatureHistory()
+        observeSoil()
+        observeIrrigationEvents()
 
         chipBt.setOnClickListener { requestPermissionsAndConnect() }
         requestPermissionsAndConnect()
@@ -153,7 +184,24 @@ class MainActivity : AppCompatActivity(), BluetoothHelper.Listener {
         switchAuto = findViewById(R.id.switchAuto)
         sliderBrightness = findViewById(R.id.sliderBrightness)
         sliderThreshold = findViewById(R.id.sliderThreshold)
+        tvFrost = findViewById(R.id.tvFrost)
+        sliderFrost = findViewById(R.id.sliderFrost)
         chartTemperature = findViewById(R.id.chartTemperature)
+
+        tvSimulated = findViewById(R.id.tvSimulated)
+        tvSoil = findViewById(R.id.tvSoil)
+        tvSoilState = findViewById(R.id.tvSoilState)
+        tvPumpState = findViewById(R.id.tvPumpState)
+        tvSoilThreshold = findViewById(R.id.tvSoilThreshold)
+        tvIrrigationSummary = findViewById(R.id.tvIrrigationSummary)
+        icSoil = findViewById(R.id.icSoil)
+        icPump = findViewById(R.id.icPump)
+        switchPump = findViewById(R.id.switchPump)
+        switchIrrigationAuto = findViewById(R.id.switchIrrigationAuto)
+        switchFault = findViewById(R.id.switchFault)
+        sliderSoilThreshold = findViewById(R.id.sliderSoilThreshold)
+        rowFault = findViewById(R.id.rowFault)
+        listIrrigation = findViewById(R.id.listIrrigation)
     }
 
     private fun requestPermissionsAndConnect() {
@@ -178,8 +226,10 @@ class MainActivity : AppCompatActivity(), BluetoothHelper.Listener {
     // ---------- Controles ----------
 
     private fun setupControls() {
-        sliderThreshold.value = threshold.toFloat().coerceIn(20f, 40f)
+        sliderThreshold.value = threshold.toFloat().coerceIn(sliderThreshold.valueFrom, sliderThreshold.valueTo)
         tvThreshold.text = getString(R.string.control_threshold, threshold)
+        sliderFrost.value = frostMinimum.toFloat().coerceIn(sliderFrost.valueFrom, sliderFrost.valueTo)
+        tvFrost.text = getString(R.string.control_frost, frostMinimum)
         chartTemperature.setThreshold(threshold.toDouble())
         renderBrightness(sliderBrightness.value.toInt())
         renderLed(false)
@@ -226,6 +276,58 @@ class MainActivity : AppCompatActivity(), BluetoothHelper.Listener {
                 bluetooth.sendCommand(ArduinoProtocol.thresholdCommand(threshold))
             }
         })
+
+        sliderFrost.addOnChangeListener { _, value, fromUser ->
+            if (!fromUser) return@addOnChangeListener
+            frostMinimum = value.toInt()
+            AppPrefs.setFrostMinimum(this, frostMinimum)
+            tvFrost.text = getString(R.string.control_frost, frostMinimum)
+            lastTemperature?.let { renderLevel(it) }
+        }
+    }
+
+    private fun setupIrrigation() {
+        sliderSoilThreshold.value =
+            soilThreshold.toFloat().coerceIn(sliderSoilThreshold.valueFrom, sliderSoilThreshold.valueTo)
+        tvSoilThreshold.text = getString(R.string.irrigation_threshold, soilThreshold)
+        renderPump(false)
+
+        switchPump.setOnCheckedChangeListener { _, isChecked ->
+            if (syncingControls) return@setOnCheckedChangeListener
+            if (bluetooth.sendCommand(ArduinoProtocol.pumpCommand(isChecked))) {
+                renderPump(isChecked)
+            } else {
+                revert(switchPump, !isChecked)
+            }
+        }
+
+        switchIrrigationAuto.setOnCheckedChangeListener { _, isChecked ->
+            if (syncingControls) return@setOnCheckedChangeListener
+            if (!bluetooth.sendCommand(ArduinoProtocol.irrigationAutoCommand(isChecked))) {
+                revert(switchIrrigationAuto, !isChecked)
+            }
+        }
+
+        switchFault.setOnCheckedChangeListener { _, isChecked ->
+            if (syncingControls) return@setOnCheckedChangeListener
+            if (!bluetooth.sendCommand(ArduinoProtocol.faultCommand(isChecked))) {
+                revert(switchFault, !isChecked)
+            }
+        }
+
+        sliderSoilThreshold.addOnChangeListener { _, value, fromUser ->
+            if (!fromUser) return@addOnChangeListener
+            soilThreshold = value.toInt()
+            AppPrefs.setSoilThreshold(this, soilThreshold)
+            tvSoilThreshold.text = getString(R.string.irrigation_threshold, soilThreshold)
+            renderSoil()
+        }
+        sliderSoilThreshold.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+            override fun onStartTrackingTouch(slider: Slider) {}
+            override fun onStopTrackingTouch(slider: Slider) {
+                bluetooth.sendCommand(ArduinoProtocol.soilThresholdCommand(soilThreshold))
+            }
+        })
     }
 
     private fun revert(toggle: MaterialSwitch, previous: Boolean) {
@@ -253,6 +355,23 @@ class MainActivity : AppCompatActivity(), BluetoothHelper.Listener {
         tvBrightness.text = getString(R.string.control_brightness, value * 100 / 255)
     }
 
+    private fun renderPump(on: Boolean) {
+        tvPumpState.setText(if (on) R.string.irrigation_pump_on else R.string.irrigation_pump_off)
+        val color = if (on) {
+            ContextCompat.getColor(this, R.color.status_ok)
+        } else {
+            MaterialColors.getColor(icPump, com.google.android.material.R.attr.colorOnSurfaceVariant)
+        }
+        ImageViewCompat.setImageTintList(icPump, ColorStateList.valueOf(color))
+    }
+
+    /** El selector de falla solo tiene sentido con el firmware simulado y conectado por Bluetooth. */
+    private fun renderSimulated(on: Boolean, fromBluetooth: Boolean) {
+        simulated = on
+        tvSimulated.visibility = if (on) View.VISIBLE else View.GONE
+        rowFault.visibility = if (on && fromBluetooth) View.VISIBLE else View.GONE
+    }
+
     private fun syncControls(status: ArduinoProtocol.DeviceStatus) {
         syncingControls = true
         status.autoMode?.let {
@@ -267,6 +386,11 @@ class MainActivity : AppCompatActivity(), BluetoothHelper.Listener {
             sliderBrightness.value = it.toFloat()
             renderBrightness(it)
         }
+        status.pumpOn?.let {
+            switchPump.isChecked = it
+            renderPump(it)
+        }
+        status.irrigationAuto?.let { switchIrrigationAuto.isChecked = it }
         syncingControls = false
     }
 
@@ -278,8 +402,18 @@ class MainActivity : AppCompatActivity(), BluetoothHelper.Listener {
             BluetoothHelper.State.CONNECTED -> {
                 lastMessageAt = SystemClock.elapsedRealtime()
                 bluetooth.sendCommand(ArduinoProtocol.thresholdCommand(threshold))
+                // SoftwareSerial no recibe mientras transmite el eco de un comando: se espacian los envíos.
+                mainHandler.postDelayed({
+                    bluetooth.sendCommand(ArduinoProtocol.soilThresholdCommand(soilThreshold))
+                }, COMMAND_GAP_MS)
+                mainHandler.postDelayed({
+                    bluetooth.sendCommand(ArduinoProtocol.faultCommand(false))
+                }, 2 * COMMAND_GAP_MS)
+                syncingControls = true
+                switchFault.isChecked = false
+                syncingControls = false
                 mainHandler.removeCallbacks(pingTick)
-                mainHandler.post(pingTick)
+                mainHandler.postDelayed(pingTick, 3 * COMMAND_GAP_MS)
             }
             BluetoothHelper.State.DISCONNECTED -> {
                 mainHandler.removeCallbacks(pingTick)
@@ -324,11 +458,17 @@ class MainActivity : AppCompatActivity(), BluetoothHelper.Listener {
                 tvLatency.text = getString(R.string.bt_latency, latency)
             }
             is ArduinoProtocol.Message.SensorError -> {
-                sensorError = true
-                renderSensorError()
+                if (message.sensor == ArduinoProtocol.SOIL_SENSOR) {
+                    soilError = true
+                    renderSoil()
+                } else {
+                    sensorError = true
+                    renderSensorError()
+                }
             }
             is ArduinoProtocol.Message.Status -> {
                 syncControls(message.status)
+                renderSimulated(message.status.simulated == true, fromBluetooth = true)
                 message.status.temperature?.let { temperature ->
                     receivedFromBluetooth = true
                     sensorError = false
@@ -336,7 +476,15 @@ class MainActivity : AppCompatActivity(), BluetoothHelper.Listener {
                     message.status.humidity?.let { showHumidity(it) }
                     uploadReading(temperature, message.status.humidity)
                 }
+                message.status.soilMoisture?.let { soil ->
+                    soilFromBluetooth = true
+                    soilError = false
+                    lastSoil = soil
+                    renderSoil()
+                    uploadSoil(soil)
+                }
             }
+            is ArduinoProtocol.Message.Irrigation -> saveIrrigation(message.event)
         }
     }
 
@@ -347,6 +495,20 @@ class MainActivity : AppCompatActivity(), BluetoothHelper.Listener {
         humidity?.let { root.child("humidity/current").setValue(it) }
         root.child("temperature/history/$now")
             .setValue(SensorReading(value = temperature, timestamp = now, humidity = humidity))
+    }
+
+    private fun uploadSoil(soil: Int) {
+        database.reference.child("soil").setValue(mapOf("current" to soil, "simulated" to simulated))
+    }
+
+    /** Guarda el riego con su veredicto y avisa si la bomba funcionó sin humedecer el suelo. */
+    private fun saveIrrigation(event: ArduinoProtocol.IrrigationEvent) {
+        val now = System.currentTimeMillis()
+        val record = IrrigationLogic.toRecord(event, now, simulated)
+        database.reference.child("irrigation/events/$now").setValue(record)
+        if (record.verdict == IrrigationLogic.Verdict.NO_EFFECT.name) {
+            NotificationHelper.showIrrigationAlert(this, record)
+        }
     }
 
     // ---------- Presentación de datos ----------
@@ -361,14 +523,21 @@ class MainActivity : AppCompatActivity(), BluetoothHelper.Listener {
         }
         renderLevel(temperature)
 
-        if (shouldTriggerAlert(previousTemperature, temperature, threshold.toDouble())) {
+        if (alerts.checkHigh(temperature, threshold.toDouble())) {
             NotificationHelper.showTemperatureAlert(this, temperature, threshold.toDouble())
         }
-        previousTemperature = temperature
+        if (alerts.checkLow(temperature, frostMinimum.toDouble())) {
+            NotificationHelper.showFrostAlert(this, temperature, frostMinimum)
+        }
     }
 
     private fun renderLevel(temperature: Double) {
         if (sensorError) return
+        if (temperature < frostMinimum) {
+            tvAlertStatus.setText(R.string.main_alert_frost)
+            styleStatus(R.color.status_bad, R.color.status_bad_container)
+            return
+        }
         applyLevelStyle(TemperatureStats.level(temperature, threshold.toDouble()))
     }
 
@@ -400,14 +569,84 @@ class MainActivity : AppCompatActivity(), BluetoothHelper.Listener {
     }
 
     private fun styleStatus(colorRes: Int, containerRes: Int) {
-        val color = ContextCompat.getColor(this, colorRes)
-        tvAlertStatus.setTextColor(color)
+        stylePill(tvAlertStatus, colorRes, containerRes)
+        ImageViewCompat.setImageTintList(icTemp, ColorStateList.valueOf(ContextCompat.getColor(this, colorRes)))
+    }
+
+    private fun stylePill(view: TextView, colorRes: Int, containerRes: Int) {
+        view.setTextColor(ContextCompat.getColor(this, colorRes))
         ViewCompat.setBackgroundTintList(
-            tvAlertStatus,
+            view,
             ColorStateList.valueOf(ContextCompat.getColor(this, containerRes))
         )
-        ImageViewCompat.setImageTintList(icTemp, ColorStateList.valueOf(color))
     }
+
+    private fun renderSoil() {
+        val soil = lastSoil.takeUnless { soilError }
+        tvSoil.text = soil?.let { getString(R.string.irrigation_soil_format, it) }
+            ?: getString(R.string.irrigation_soil_placeholder)
+        val (textRes, colorRes, containerRes) = when {
+            soilError -> Triple(R.string.irrigation_soil_error, R.color.status_bad, R.color.status_bad_container)
+            soil == null -> Triple(R.string.irrigation_soil_none, R.color.status_off, R.color.status_off_container)
+            else -> when (IrrigationLogic.soilLevel(soil, soilThreshold)) {
+                0 -> Triple(R.string.irrigation_soil_dry, R.color.status_warn, R.color.status_warn_container)
+                1 -> Triple(R.string.irrigation_soil_ok, R.color.status_ok, R.color.status_ok_container)
+                else -> Triple(R.string.irrigation_soil_wet, R.color.status_ok, R.color.status_ok_container)
+            }
+        }
+        tvSoilState.setText(textRes)
+        stylePill(tvSoilState, colorRes, containerRes)
+        ImageViewCompat.setImageTintList(icSoil, ColorStateList.valueOf(ContextCompat.getColor(this, colorRes)))
+    }
+
+    private fun showIrrigationHistory(records: List<IrrigationRecord>, sinceMillis: Long) {
+        val summary = IrrigationLogic.summarize(records, sinceMillis)
+        tvIrrigationSummary.text = if (summary.total == 0) {
+            getString(R.string.irrigation_summary_none)
+        } else {
+            getString(R.string.irrigation_summary, summary.total, summary.verified, summary.noEffect)
+        }
+
+        listIrrigation.removeAllViews()
+        records.takeLast(IRRIGATION_ROWS).asReversed().forEach { record ->
+            val row = layoutInflater.inflate(R.layout.item_irrigation, listIrrigation, false)
+            val mode = getString(if (record.automatic) R.string.irrigation_mode_auto else R.string.irrigation_mode_manual)
+            val title = getString(
+                R.string.irrigation_row_title,
+                timeFormat.format(Date(record.timestamp)),
+                mode,
+                record.durationSeconds
+            )
+            row.findViewById<TextView>(R.id.tvIrrigationTitle).text =
+                if (record.simulated) getString(R.string.irrigation_row_simulated, title) else title
+            row.findViewById<TextView>(R.id.tvIrrigationDetail).text = getString(
+                R.string.irrigation_row_detail,
+                record.soilBefore,
+                record.soilAfter,
+                getString(reasonText(record.reason))
+            )
+            val (verdictRes, colorRes, containerRes) = when (record.verdict) {
+                IrrigationLogic.Verdict.VERIFIED.name ->
+                    Triple(R.string.irrigation_verdict_verified, R.color.status_ok, R.color.status_ok_container)
+                IrrigationLogic.Verdict.NO_EFFECT.name ->
+                    Triple(R.string.irrigation_verdict_no_effect, R.color.status_bad, R.color.status_bad_container)
+                else ->
+                    Triple(R.string.irrigation_verdict_inconclusive, R.color.status_off, R.color.status_off_container)
+            }
+            val verdict = row.findViewById<TextView>(R.id.tvIrrigationVerdict)
+            verdict.setText(verdictRes)
+            stylePill(verdict, colorRes, containerRes)
+            listIrrigation.addView(row)
+        }
+    }
+
+    private fun reasonText(code: String): Int =
+        when (code.firstOrNull()?.let { ArduinoProtocol.StopReason.fromCode(it) }) {
+            ArduinoProtocol.StopReason.THRESHOLD_REACHED -> R.string.irrigation_reason_threshold
+            ArduinoProtocol.StopReason.MAX_TIME -> R.string.irrigation_reason_max_time
+            ArduinoProtocol.StopReason.SENSOR_FAILURE -> R.string.irrigation_reason_sensor
+            ArduinoProtocol.StopReason.STOPPED, null -> R.string.irrigation_reason_stopped
+        }
 
     private fun showHumidity(humidity: Double) {
         tvHumidity.text = getString(R.string.main_humidity_format, humidity)
@@ -472,6 +711,39 @@ class MainActivity : AppCompatActivity(), BluetoothHelper.Listener {
             })
     }
 
+    private fun observeSoil() {
+        database.getReference("soil")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    if (soilFromBluetooth) return
+                    val soil = snapshot.child("current").getValue(Int::class.java) ?: return
+                    renderSimulated(snapshot.child("simulated").getValue(Boolean::class.java) == true, fromBluetooth = false)
+                    lastSoil = soil
+                    renderSoil()
+                }
+
+                override fun onCancelled(error: DatabaseError) {}
+            })
+    }
+
+    /** Riegos de hoy; las claves son timestamps de igual longitud, así que el orden de texto es cronológico. */
+    private fun observeIrrigationEvents() {
+        val dayStart = TemperatureStats.startOfDay(System.currentTimeMillis())
+        database.getReference("irrigation/events")
+            .orderByKey()
+            .startAt(dayStart.toString())
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val records = snapshot.children.mapNotNull {
+                        it.getValue(IrrigationRecord::class.java)
+                    }
+                    showIrrigationHistory(records, dayStart)
+                }
+
+                override fun onCancelled(error: DatabaseError) {}
+            })
+    }
+
     private fun goToLogin() {
         startActivity(Intent(this, LoginActivity::class.java))
         applyFadeTransition()
@@ -484,6 +756,8 @@ class MainActivity : AppCompatActivity(), BluetoothHelper.Listener {
         private const val HISTORY_WINDOW = 500
         private const val PING_INTERVAL_MS = 5_000L
         private const val SILENCE_TIMEOUT_MS = 15_000L
+        private const val COMMAND_GAP_MS = 300L
+        private const val IRRIGATION_ROWS = 5
 
         fun isAboveThreshold(
             temperature: Double,
